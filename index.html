@@ -110,35 +110,44 @@
       flex-wrap: wrap;
     }
 
-    .event {
-      border-left: 4px solid var(--brand);
-      background: #f8f9ff;
-      border-radius: 10px;
-      padding: .6rem .7rem;
-      margin-bottom: .55rem;
+    .schedule-list {
+      margin-top: .7rem;
+      display: grid;
+      gap: .5rem;
     }
 
-    .event strong {
-      display: flex;
-      justify-content: space-between;
-      gap: .6rem;
-      margin-bottom: .4rem;
-    }
-
-    .event small { color: var(--muted); display: block; margin-top: .3rem; }
-
-    .event-time {
+    .schedule-line {
       display: grid;
       grid-template-columns: 1fr auto;
       align-items: center;
       gap: .5rem;
+      padding: .25rem 0;
+      border-bottom: 1px dashed #e2e6f7;
     }
 
-    .event-time input[type="time"] {
+    .schedule-line:last-child {
+      border-bottom: none;
+    }
+
+    .schedule-text {
+      font-size: 1.05rem;
+      line-height: 1.35;
+    }
+
+    .schedule-text .time {
+      font-weight: 800;
+    }
+
+    .schedule-text .dash {
+      color: var(--muted);
+      margin: 0 .2rem;
+    }
+
+    .schedule-line input[type="time"] {
       width: auto;
-      min-width: 130px;
-      padding: .35rem .45rem;
-      font-size: .88rem;
+      min-width: 114px;
+      padding: .3rem .4rem;
+      font-size: .84rem;
     }
 
     .good { color: var(--ok); }
@@ -182,7 +191,7 @@
             <label for="wakeTime">First wake-up time</label>
             <span class="value" id="wakeTimeValue"></span>
           </div>
-          <input id="wakeTime" type="range" min="300" max="600" step="15" value="420" />
+          <input id="wakeTime" type="range" min="300" max="600" step="15" value="510" />
         </div>
 
         <div class="field">
@@ -190,7 +199,7 @@
             <label for="firstFeed">First feed time</label>
             <span class="value" id="firstFeedValue"></span>
           </div>
-          <input id="firstFeed" type="range" min="300" max="660" step="15" value="435" />
+          <input id="firstFeed" type="range" min="300" max="660" step="15" value="525" />
         </div>
       </div>
 
@@ -223,8 +232,8 @@
         <h2>Suggested Daily Timeline</h2>
         <button id="clearEdits" type="button">Clear manual timeline edits</button>
       </div>
-      <p class="mini-note">You can edit any event time below. Later events will shift forward/backward from the edited point.</p>
-      <div id="schedule"></div>
+      <p class="mini-note">Simple schedule view. Edit any time inline; later events shift from the edit point.</p>
+      <div id="schedule" class="schedule-list"></div>
     </section>
   </main>
 
@@ -302,15 +311,18 @@
       });
     }
 
-    function shiftEventsFromManualEdits(events) {
+    function shiftEventsFromManualEdits(events, bedtime) {
       let shift = 0;
       return events.map(item => {
         const next = { ...item, at: item.at + shift };
         if (timelineOverrides.has(item.key)) {
-          const manualAt = timelineOverrides.get(item.key);
+          const manualAt = Math.min(timelineOverrides.get(item.key), bedtime);
           const delta = manualAt - next.at;
           next.at = manualAt;
           shift += delta;
+        }
+        if (next.at > bedtime) {
+          next.at = bedtime;
         }
         return next;
       });
@@ -397,8 +409,11 @@
       }
 
       let feedIndex = 1;
-      for (let t = firstFeed; t <= bedtime + 60; t += feedInterval) {
+      for (let t = firstFeed; t <= bedtime; t += feedInterval) {
         const safeFeedTime = alignFeedToNapEnd(t, napBlocks);
+        if (safeFeedTime > bedtime) {
+          continue;
+        }
         events.push({
           key: `feed-${feedIndex}`,
           type: 'feed',
@@ -434,21 +449,26 @@
       return item.details;
     }
 
+    function getEventLine(item) {
+      if ((item.type === 'nap' || item.type === 'catnap') && item.duration) {
+        const end = item.at + item.duration;
+        return `<span class="time">${formatTime(item.at)}–${formatTime(end)}</span><span class="dash">—</span>${item.title}`;
+      }
+      return `<span class="time">${formatTime(item.at)}</span><span class="dash">—</span>${item.title}`;
+    }
+
     function renderSchedule() {
+      const bedtime = parseTimeInput(el.bedtime.value || '20:00');
       const baseEvents = buildEvents();
-      const events = shiftEventsFromManualEdits(baseEvents).sort((a, b) => a.at - b.at);
+      const events = shiftEventsFromManualEdits(baseEvents, bedtime)
+        .filter(item => item.at <= bedtime)
+        .sort((a, b) => a.at - b.at);
 
       el.schedule.innerHTML = events.map(item => `
-        <article class="event">
-          <strong class="${item.good ? 'good' : ''}">
-            <span>${item.title}</span>
-            <span>${formatTime(item.at)}</span>
-          </strong>
-          <div class="event-time">
-            <small>${getEventDetails(item)}</small>
-            <input type="time" data-key="${item.key}" value="${timeInputValue(item.at)}" />
-          </div>
-        </article>
+        <div class="schedule-line ${item.good ? 'good' : ''}">
+          <div class="schedule-text" title="${getEventDetails(item)}">${getEventLine(item)}</div>
+          <input type="time" data-key="${item.key}" value="${timeInputValue(item.at)}" />
+        </div>
       `).join('');
 
       el.schedule.querySelectorAll('input[type="time"]').forEach(input => {
