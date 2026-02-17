@@ -507,7 +507,7 @@
       `).join('');
 
       el.schedule.querySelectorAll('input[type="time"]').forEach(input => {
-        input.addEventListener('input', event => {
+        input.addEventListener('change', event => {
           const key = event.target.dataset.key;
           const kind = event.target.dataset.kind;
           const changedTime = parseTimeInput(event.target.value);
