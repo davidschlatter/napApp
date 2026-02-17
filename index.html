@@ -27,7 +27,7 @@
     }
 
     .app {
-      width: min(760px, 100%);
+      width: min(740px, 100%);
       margin: 0 auto;
       padding: 1rem .85rem 2rem;
     }
@@ -48,7 +48,9 @@
 
     p { margin: 0; color: var(--muted); }
 
-    .field { margin: .8rem 0; }
+    .field {
+      margin: .8rem 0;
+    }
 
     .field-header {
       display: flex;
@@ -71,16 +73,14 @@
       accent-color: var(--brand);
     }
 
-    input[type="time"], button {
+    input[type="time"], select {
       font: inherit;
+      width: 100%;
       border-radius: 10px;
       border: 1px solid var(--border);
       padding: .55rem .65rem;
       background: #fff;
-      color: var(--text);
     }
-
-    input[type="time"] { width: 100%; }
 
     .toggle {
       display: flex;
@@ -93,22 +93,7 @@
       margin-top: .35rem;
     }
 
-    .mini-note {
-      margin-top: .35rem;
-      color: var(--muted);
-      font-size: .82rem;
-    }
-
-    .timeline h2 { margin: .2rem 0 .4rem; font-size: 1.1rem; }
-
-    .timeline-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: .75rem;
-      margin-bottom: .4rem;
-      flex-wrap: wrap;
-    }
+    .timeline h2 { margin: .2rem 0 .7rem; font-size: 1.1rem; }
 
     .event {
       border-left: 4px solid var(--brand);
@@ -118,27 +103,13 @@
       margin-bottom: .55rem;
     }
 
+    .event small { color: var(--muted); display: block; }
+
     .event strong {
       display: flex;
       justify-content: space-between;
       gap: .6rem;
-      margin-bottom: .4rem;
-    }
-
-    .event small { color: var(--muted); display: block; margin-top: .3rem; }
-
-    .event-time {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: .5rem;
-    }
-
-    .event-time input[type="time"] {
-      width: auto;
-      min-width: 130px;
-      padding: .35rem .45rem;
-      font-size: .88rem;
+      margin-bottom: .22rem;
     }
 
     .good { color: var(--ok); }
@@ -166,12 +137,10 @@
         <input id="napCount" type="range" min="1" max="6" step="1" value="3" />
       </div>
 
-      <div id="napLengthControls"></div>
-
       <div class="field">
         <label for="catnap" style="display:block; margin-bottom: .3rem;">Include 30 minute "catnap" before bed</label>
         <div class="toggle">
-          <span>Catnap enabled (ends 1.5h before bedtime)</span>
+          <span>Catnap enabled</span>
           <input id="catnap" type="checkbox" checked />
         </div>
       </div>
@@ -219,11 +188,7 @@
     </section>
 
     <section class="card timeline">
-      <div class="timeline-head">
-        <h2>Suggested Daily Timeline</h2>
-        <button id="clearEdits" type="button">Clear manual timeline edits</button>
-      </div>
-      <p class="mini-note">You can edit any event time below. Later events will shift forward/backward from the edited point.</p>
+      <h2>Suggested Daily Timeline</h2>
       <div id="schedule"></div>
     </section>
   </main>
@@ -232,7 +197,6 @@
     const el = {
       napCount: document.getElementById('napCount'),
       napCountValue: document.getElementById('napCountValue'),
-      napLengthControls: document.getElementById('napLengthControls'),
       catnap: document.getElementById('catnap'),
       wakeTime: document.getElementById('wakeTime'),
       wakeTimeValue: document.getElementById('wakeTimeValue'),
@@ -243,12 +207,10 @@
       feedInterval: document.getElementById('feedInterval'),
       feedIntervalValue: document.getElementById('feedIntervalValue'),
       bedtime: document.getElementById('bedtime'),
-      schedule: document.getElementById('schedule'),
-      clearEdits: document.getElementById('clearEdits')
+      schedule: document.getElementById('schedule')
     };
 
-    const napDurations = [90, 90, 60, 60, 60, 60];
-    const timelineOverrides = new Map();
+    const defaultNapDuration = 105; // 1h 45m
 
     function formatTime(totalMin) {
       const mins = ((totalMin % 1440) + 1440) % 1440;
@@ -257,13 +219,6 @@
       const suffix = h >= 12 ? 'PM' : 'AM';
       const hour12 = h % 12 || 12;
       return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
-    }
-
-    function timeInputValue(totalMin) {
-      const mins = ((totalMin % 1440) + 1440) % 1440;
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     }
 
     function fmtDuration(min) {
@@ -278,55 +233,8 @@
       const [h, m] = value.split(':').map(Number);
       return h * 60 + m;
     }
-    function renderNapLengthControls() {
-      const napCount = Number(el.napCount.value);
-      const blocks = [];
-      for (let i = 0; i < napCount; i++) {
-        blocks.push(`
-          <div class="field">
-            <div class="field-header">
-              <label for="napDuration${i}">Nap ${i + 1} length</label>
-              <span class="value" id="napDuration${i}Value">${fmtDuration(napDurations[i])}</span>
-            </div>
-            <input id="napDuration${i}" data-nap-index="${i}" type="range" min="30" max="150" step="15" value="${napDurations[i]}" />
-          </div>
-        `);
-      }
-      el.napLengthControls.innerHTML = blocks.join('');
-      el.napLengthControls.querySelectorAll('input[type="range"]').forEach(input => {
-        input.addEventListener('input', event => {
-          const napIndex = Number(event.target.dataset.napIndex);
-          napDurations[napIndex] = Number(event.target.value);
-          renderSchedule();
-        });
-      });
-    }
 
-    function shiftEventsFromManualEdits(events) {
-      let shift = 0;
-      return events.map(item => {
-        const next = { ...item, at: item.at + shift };
-        if (timelineOverrides.has(item.key)) {
-          const manualAt = timelineOverrides.get(item.key);
-          const delta = manualAt - next.at;
-          next.at = manualAt;
-          shift += delta;
-        }
-        return next;
-      });
-    }
-
-    function alignFeedToNapEnd(feedTime, napBlocks) {
-      let adjusted = feedTime;
-      napBlocks.forEach(nap => {
-        if (adjusted >= nap.start && adjusted < nap.end) {
-          adjusted = nap.end;
-        }
-      });
-      return adjusted;
-    }
-
-    function buildEvents() {
+    function renderSchedule() {
       const napCount = Number(el.napCount.value);
       const wakeTime = Number(el.wakeTime.value);
       const firstFeed = Number(el.firstFeed.value);
@@ -341,34 +249,23 @@
       el.wakeWindowValue.textContent = fmtDuration(wakeWindow);
       el.feedIntervalValue.textContent = fmtDuration(feedInterval);
 
-      for (let i = 0; i < napCount; i++) {
-        const durationLabel = document.getElementById(`napDuration${i}Value`);
-        if (durationLabel) {
-          durationLabel.textContent = fmtDuration(napDurations[i]);
-        }
-      }
-
-      const events = [{
-        key: 'start-day',
+      const events = [];
+      events.push({
         at: wakeTime,
         title: 'Start day',
         details: 'Wake up and begin first wake window.'
-      }];
+      });
 
-      const napBlocks = [];
       let currentWakeStart = wakeTime;
       for (let i = 1; i <= napCount; i++) {
-        const napDuration = napDurations[i - 1] || 60;
         let napStart = currentWakeStart + wakeWindow;
-        let napEnd = napStart + napDuration;
+        let napEnd = napStart + defaultNapDuration;
 
         if (napStart >= bedtime - 30) break;
         if (napEnd > bedtime - 15) napEnd = bedtime - 15;
         if (napEnd <= napStart) break;
 
-        napBlocks.push({ start: napStart, end: napEnd });
         events.push({
-          key: `nap-${i}`,
           at: napStart,
           title: `Nap ${i}`,
           details: `${formatTime(napStart)} → ${formatTime(napEnd)} (${fmtDuration(napEnd - napStart)})`
@@ -378,45 +275,33 @@
       }
 
       if (includeCatnap) {
-        const catnapEnd = bedtime - 90;
+        const catnapEnd = bedtime - 30;
         const catnapStart = catnapEnd - 30;
         if (catnapStart > wakeTime && catnapEnd > catnapStart) {
-          napBlocks.push({ start: catnapStart, end: catnapEnd });
           events.push({
-            key: 'catnap',
             at: catnapStart,
             title: 'Catnap',
-            details: `${formatTime(catnapStart)} → ${formatTime(catnapEnd)} (30m, ends 1.5h before bedtime)`
+            details: `${formatTime(catnapStart)} → ${formatTime(catnapEnd)} (30m)`
           });
         }
       }
 
-      let feedIndex = 1;
       for (let t = firstFeed; t <= bedtime + 60; t += feedInterval) {
-        const safeFeedTime = alignFeedToNapEnd(t, napBlocks);
         events.push({
-          key: `feed-${feedIndex}`,
-          at: safeFeedTime,
+          at: t,
           title: 'Feed',
-          details: `Target feed around ${formatTime(safeFeedTime)}.`
+          details: `Target feed around ${formatTime(t)}.`
         });
-        feedIndex++;
       }
 
       events.push({
-        key: 'bedtime',
         at: bedtime,
         title: 'Bedtime',
         details: 'Night sleep target.',
         good: true
       });
 
-      return events.sort((a, b) => a.at - b.at);
-    }
-
-    function renderSchedule() {
-      const baseEvents = buildEvents();
-      const events = shiftEventsFromManualEdits(baseEvents).sort((a, b) => a.at - b.at);
+      events.sort((a, b) => a.at - b.at);
 
       el.schedule.innerHTML = events.map(item => `
         <article class="event">
@@ -424,29 +309,13 @@
             <span>${item.title}</span>
             <span>${formatTime(item.at)}</span>
           </strong>
-          <div class="event-time">
-            <small>${item.details}</small>
-            <input type="time" data-key="${item.key}" value="${timeInputValue(item.at)}" />
-          </div>
+          <small>${item.details}</small>
         </article>
       `).join('');
-
-      el.schedule.querySelectorAll('input[type="time"]').forEach(input => {
-        input.addEventListener('input', event => {
-          const key = event.target.dataset.key;
-          const changedTime = parseTimeInput(event.target.value);
-          timelineOverrides.set(key, changedTime);
-          renderSchedule();
-        });
-      });
     }
 
-    el.napCount.addEventListener('input', () => {
-      renderNapLengthControls();
-      renderSchedule();
-    });
-
     [
+      el.napCount,
       el.catnap,
       el.wakeTime,
       el.firstFeed,
@@ -455,12 +324,6 @@
       el.bedtime
     ].forEach(input => input.addEventListener('input', renderSchedule));
 
-    el.clearEdits.addEventListener('click', () => {
-      timelineOverrides.clear();
-      renderSchedule();
-    });
-
-    renderNapLengthControls();
     renderSchedule();
   </script>
 </body>
