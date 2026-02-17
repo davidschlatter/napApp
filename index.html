@@ -143,9 +143,15 @@
       margin: 0 .2rem;
     }
 
+    .time-inputs {
+      display: flex;
+      gap: .35rem;
+      align-items: center;
+    }
+
     .schedule-line input[type="time"] {
       width: auto;
-      min-width: 114px;
+      min-width: 90px;
       padding: .3rem .4rem;
       font-size: .84rem;
     }
@@ -257,7 +263,8 @@
     };
 
     const napDurations = [90, 90, 60, 60, 60, 60];
-    const timelineOverrides = new Map();
+    const timelineStartOverrides = new Map();
+    const timelineEndOverrides = new Map();
 
     function formatTime(totalMin) {
       const mins = ((totalMin % 1440) + 1440) % 1440;
@@ -315,12 +322,32 @@
       let shift = 0;
       return events.map(item => {
         const next = { ...item, at: item.at + shift };
-        if (timelineOverrides.has(item.key)) {
-          const manualAt = Math.min(timelineOverrides.get(item.key), bedtime);
+
+        if (timelineStartOverrides.has(item.key)) {
+          const manualAt = Math.min(timelineStartOverrides.get(item.key), bedtime);
           const delta = manualAt - next.at;
           next.at = manualAt;
           shift += delta;
         }
+
+        if ((next.type === 'nap' || next.type === 'catnap') && typeof next.duration === 'number') {
+          const originalDuration = next.duration;
+
+          if (timelineEndOverrides.has(item.key)) {
+            const manualEnd = Math.min(timelineEndOverrides.get(item.key), bedtime);
+            const minEnd = next.at + 15;
+            const adjustedEnd = Math.max(minEnd, manualEnd);
+            next.duration = adjustedEnd - next.at;
+            shift += next.duration - originalDuration;
+          }
+
+          const maxDuration = Math.max(0, bedtime - next.at);
+          if (next.duration > maxDuration) {
+            shift += maxDuration - next.duration;
+            next.duration = maxDuration;
+          }
+        }
+
         if (next.at > bedtime) {
           next.at = bedtime;
         }
@@ -467,15 +494,25 @@
       el.schedule.innerHTML = events.map(item => `
         <div class="schedule-line ${item.good ? 'good' : ''}">
           <div class="schedule-text" title="${getEventDetails(item)}">${getEventLine(item)}</div>
-          <input type="time" data-key="${item.key}" value="${timeInputValue(item.at)}" />
+          <div class="time-inputs">
+            <input type="time" data-key="${item.key}" data-kind="start" value="${timeInputValue(item.at)}" />
+            ${(item.type === 'nap' || item.type === 'catnap')
+              ? `<input type="time" data-key="${item.key}" data-kind="end" value="${timeInputValue(item.at + item.duration)}" />`
+              : ''}
+          </div>
         </div>
       `).join('');
 
       el.schedule.querySelectorAll('input[type="time"]').forEach(input => {
         input.addEventListener('input', event => {
           const key = event.target.dataset.key;
+          const kind = event.target.dataset.kind;
           const changedTime = parseTimeInput(event.target.value);
-          timelineOverrides.set(key, changedTime);
+          if (kind === 'end') {
+            timelineEndOverrides.set(key, changedTime);
+          } else {
+            timelineStartOverrides.set(key, changedTime);
+          }
           renderSchedule();
         });
       });
@@ -496,7 +533,8 @@
     ].forEach(input => input.addEventListener('input', renderSchedule));
 
     el.clearEdits.addEventListener('click', () => {
-      timelineOverrides.clear();
+      timelineStartOverrides.clear();
+      timelineEndOverrides.clear();
       renderSchedule();
     });
 
