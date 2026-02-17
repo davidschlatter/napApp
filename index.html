@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baby Nap Planner Prototype</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #1f2130;
+      --muted: #60657d;
+      --brand: #5e6df6;
+      --border: #dde1f1;
+      --ok: #0b8d66;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #f1f4ff 0%, var(--bg) 40%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      width: min(740px, 100%);
+      margin: 0 auto;
+      padding: 1rem .85rem 2rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 4px 18px rgba(43, 51, 102, .08);
+      margin-bottom: .9rem;
+    }
+
+    h1 {
+      font-size: clamp(1.35rem, 3.6vw, 1.7rem);
+      margin: .2rem 0 .4rem;
+    }
+
+    p { margin: 0; color: var(--muted); }
+
+    .field {
+      margin: .8rem 0;
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      gap: .5rem;
+      align-items: baseline;
+      margin-bottom: .4rem;
+    }
+
+    label { font-weight: 600; font-size: .95rem; }
+
+    .value {
+      color: var(--brand);
+      font-weight: 700;
+      font-size: .92rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--brand);
+    }
+
+    input[type="time"], select {
+      font: inherit;
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: .55rem .65rem;
+      background: #fff;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .8rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem .75rem;
+      margin-top: .35rem;
+    }
+
+    .timeline h2 { margin: .2rem 0 .7rem; font-size: 1.1rem; }
+
+    .event {
+      border-left: 4px solid var(--brand);
+      background: #f8f9ff;
+      border-radius: 10px;
+      padding: .6rem .7rem;
+      margin-bottom: .55rem;
+    }
+
+    .event small { color: var(--muted); display: block; }
+
+    .event strong {
+      display: flex;
+      justify-content: space-between;
+      gap: .6rem;
+      margin-bottom: .22rem;
+    }
+
+    .good { color: var(--ok); }
+
+    @media (min-width: 640px) {
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>Baby Nap + Wake Window Planner</h1>
+      <p>Prototype for quickly testing nap/feeding schedules on mobile.</p>
+
+      <div class="field">
+        <div class="field-header">
+          <label for="napCount">Target naps for the day</label>
+          <span class="value" id="napCountValue">3 naps</span>
+        </div>
+        <input id="napCount" type="range" min="1" max="6" step="1" value="3" />
+      </div>
+
+      <div class="field">
+        <label for="catnap" style="display:block; margin-bottom: .3rem;">Include 30 minute "catnap" before bed</label>
+        <div class="toggle">
+          <span>Catnap enabled</span>
+          <input id="catnap" type="checkbox" checked />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <div class="field-header">
+            <label for="wakeTime">First wake-up time</label>
+            <span class="value" id="wakeTimeValue"></span>
+          </div>
+          <input id="wakeTime" type="range" min="300" max="600" step="15" value="420" />
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <label for="firstFeed">First feed time</label>
+            <span class="value" id="firstFeedValue"></span>
+          </div>
+          <input id="firstFeed" type="range" min="300" max="660" step="15" value="435" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <div class="field-header">
+            <label for="wakeWindow">Wake window length</label>
+            <span class="value" id="wakeWindowValue"></span>
+          </div>
+          <input id="wakeWindow" type="range" min="45" max="240" step="15" value="90" />
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <label for="feedInterval">Time between feeds</label>
+            <span class="value" id="feedIntervalValue"></span>
+          </div>
+          <input id="feedInterval" type="range" min="120" max="300" step="15" value="180" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="bedtime" style="display:block; margin-bottom: .35rem;">Bedtime</label>
+        <input id="bedtime" type="time" value="20:00" />
+      </div>
+    </section>
+
+    <section class="card timeline">
+      <h2>Suggested Daily Timeline</h2>
+      <div id="schedule"></div>
+    </section>
+  </main>
+
+  <script>
+    const el = {
+      napCount: document.getElementById('napCount'),
+      napCountValue: document.getElementById('napCountValue'),
+      catnap: document.getElementById('catnap'),
+      wakeTime: document.getElementById('wakeTime'),
+      wakeTimeValue: document.getElementById('wakeTimeValue'),
+      firstFeed: document.getElementById('firstFeed'),
+      firstFeedValue: document.getElementById('firstFeedValue'),
+      wakeWindow: document.getElementById('wakeWindow'),
+      wakeWindowValue: document.getElementById('wakeWindowValue'),
+      feedInterval: document.getElementById('feedInterval'),
+      feedIntervalValue: document.getElementById('feedIntervalValue'),
+      bedtime: document.getElementById('bedtime'),
+      schedule: document.getElementById('schedule')
+    };
+
+    const defaultNapDuration = 105; // 1h 45m
+
+    function formatTime(totalMin) {
+      const mins = ((totalMin % 1440) + 1440) % 1440;
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const suffix = h >= 12 ? 'PM' : 'AM';
+      const hour12 = h % 12 || 12;
+      return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
+    }
+
+    function fmtDuration(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      if (h && m) return `${h}h ${m}m`;
+      if (h) return `${h}h`;
+      return `${m}m`;
+    }
+
+    function parseTimeInput(value) {
+      const [h, m] = value.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function renderSchedule() {
+      const napCount = Number(el.napCount.value);
+      const wakeTime = Number(el.wakeTime.value);
+      const firstFeed = Number(el.firstFeed.value);
+      const wakeWindow = Number(el.wakeWindow.value);
+      const feedInterval = Number(el.feedInterval.value);
+      const bedtime = parseTimeInput(el.bedtime.value || '20:00');
+      const includeCatnap = el.catnap.checked;
+
+      el.napCountValue.textContent = `${napCount} nap${napCount > 1 ? 's' : ''}`;
+      el.wakeTimeValue.textContent = formatTime(wakeTime);
+      el.firstFeedValue.textContent = formatTime(firstFeed);
+      el.wakeWindowValue.textContent = fmtDuration(wakeWindow);
+      el.feedIntervalValue.textContent = fmtDuration(feedInterval);
+
+      const events = [];
+      events.push({
+        at: wakeTime,
+        title: 'Start day',
+        details: 'Wake up and begin first wake window.'
+      });
+
+      let currentWakeStart = wakeTime;
+      for (let i = 1; i <= napCount; i++) {
+        let napStart = currentWakeStart + wakeWindow;
+        let napEnd = napStart + defaultNapDuration;
+
+        if (napStart >= bedtime - 30) break;
+        if (napEnd > bedtime - 15) napEnd = bedtime - 15;
+        if (napEnd <= napStart) break;
+
+        events.push({
+          at: napStart,
+          title: `Nap ${i}`,
+          details: `${formatTime(napStart)} → ${formatTime(napEnd)} (${fmtDuration(napEnd - napStart)})`
+        });
+
+        currentWakeStart = napEnd;
+      }
+
+      if (includeCatnap) {
+        const catnapEnd = bedtime - 30;
+        const catnapStart = catnapEnd - 30;
+        if (catnapStart > wakeTime && catnapEnd > catnapStart) {
+          events.push({
+            at: catnapStart,
+            title: 'Catnap',
+            details: `${formatTime(catnapStart)} → ${formatTime(catnapEnd)} (30m)`
+          });
+        }
+      }
+
+      for (let t = firstFeed; t <= bedtime + 60; t += feedInterval) {
+        events.push({
+          at: t,
+          title: 'Feed',
+          details: `Target feed around ${formatTime(t)}.`
+        });
+      }
+
+      events.push({
+        at: bedtime,
+        title: 'Bedtime',
+        details: 'Night sleep target.',
+        good: true
+      });
+
+      events.sort((a, b) => a.at - b.at);
+
+      el.schedule.innerHTML = events.map(item => `
+        <article class="event">
+          <strong class="${item.good ? 'good' : ''}">
+            <span>${item.title}</span>
+            <span>${formatTime(item.at)}</span>
+          </strong>
+          <small>${item.details}</small>
+        </article>
+      `).join('');
+    }
+
+    [
+      el.napCount,
+      el.catnap,
+      el.wakeTime,
+      el.firstFeed,
+      el.wakeWindow,
+      el.feedInterval,
+      el.bedtime
+    ].forEach(input => input.addEventListener('input', renderSchedule));
+
+    renderSchedule();
+  </script>
+</body>
+</html>
