@@ -368,6 +368,56 @@
       return adjusted;
     }
 
+
+    function adjustFeedForNaps(feedTime, naps, bedtime) {
+      let adjusted = Math.min(feedTime, bedtime);
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+        for (const nap of naps) {
+          if (adjusted >= nap.start && adjusted < nap.end) {
+            adjusted = Math.min(nap.end + 15, bedtime);
+            changed = true;
+          }
+        }
+      }
+
+      return adjusted;
+    }
+
+    function applyFeedCadence(events, bedtime, feedInterval) {
+      const naps = events
+        .filter(item => (item.type === 'nap' || item.type === 'catnap') && typeof item.duration === 'number')
+        .map(item => ({ start: item.at, end: item.at + item.duration }))
+        .sort((a, b) => a.start - b.start);
+
+      let lastFeedTime = null;
+      return events.map(item => {
+        if (item.type !== 'feed') {
+          return item;
+        }
+
+        let nextFeedTime = item.at;
+        const manualFeedEdit = timelineStartOverrides.has(item.key);
+
+        if (manualFeedEdit) {
+          nextFeedTime = Math.min(timelineStartOverrides.get(item.key), bedtime);
+        } else if (lastFeedTime !== null) {
+          nextFeedTime = lastFeedTime + feedInterval;
+        }
+
+        nextFeedTime = adjustFeedForNaps(nextFeedTime, naps, bedtime);
+        lastFeedTime = nextFeedTime;
+
+        return {
+          ...item,
+          at: nextFeedTime,
+          details: `Target feed around ${formatTime(nextFeedTime)}.`
+        };
+      });
+    }
+
     function buildEvents() {
       const napCount = Number(el.napCount.value);
       const wakeTime = Number(el.wakeTime.value);
@@ -489,8 +539,12 @@
 
     function renderSchedule() {
       const bedtime = parseTimeInput(el.bedtime.value || '20:00');
+      const feedInterval = Number(el.feedInterval.value);
       const baseEvents = buildEvents();
-      const events = shiftEventsFromManualEdits(baseEvents, bedtime)
+      const shiftedEvents = shiftEventsFromManualEdits(baseEvents, bedtime)
+        .filter(item => item.at <= bedtime)
+        .sort((a, b) => a.at - b.at);
+      const events = applyFeedCadence(shiftedEvents, bedtime, feedInterval)
         .filter(item => item.at <= bedtime)
         .sort((a, b) => a.at - b.at);
 
