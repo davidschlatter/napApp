@@ -3,35 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Baby Nap Planner Prototype</title>
+  <title>Baby Nap Planner</title>
   <style>
     :root {
-      color-scheme: light;
-      --bg: #f7f7fb;
-      --card: #ffffff;
+      --bg: #f4f5fb;
+      --card: #fff;
       --text: #1f2130;
       --muted: #60657d;
       --brand: #5e6df6;
       --border: #dde1f1;
       --ok: #0b8d66;
     }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: linear-gradient(180deg, #f1f4ff 0%, var(--bg) 40%);
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 45%);
       color: var(--text);
       min-height: 100vh;
     }
-
-    .app {
-      width: min(760px, 100%);
-      margin: 0 auto;
-      padding: 1rem .85rem 2rem;
-    }
-
+    .app { width: min(860px, 100%); margin: 0 auto; padding: 1rem .85rem 2rem; }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -40,212 +31,166 @@
       box-shadow: 0 4px 18px rgba(43, 51, 102, .08);
       margin-bottom: .9rem;
     }
-
-    h1 {
-      font-size: clamp(1.35rem, 3.6vw, 1.7rem);
-      margin: .2rem 0 .4rem;
-    }
-
+    h1,h2,h3 { margin: .1rem 0 .5rem; }
     p { margin: 0; color: var(--muted); }
-
+    .hidden { display: none !important; }
     .field { margin: .8rem 0; }
-
-    .field-header {
-      display: flex;
-      justify-content: space-between;
-      gap: .5rem;
-      align-items: baseline;
-      margin-bottom: .4rem;
-    }
-
+    .field-header { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; margin-bottom: .4rem; }
     label { font-weight: 600; font-size: .95rem; }
-
-    .value {
-      color: var(--brand);
-      font-weight: 700;
-      font-size: .92rem;
+    .value { color: var(--brand); font-weight: 700; font-size: .92rem; }
+    input[type="range"] { width: 100%; accent-color: var(--brand); }
+    input[type="time"], input[type="text"], input[type="date"], button {
+      font: inherit; border-radius: 10px; border: 1px solid var(--border); padding: .55rem .65rem; background: #fff; color: var(--text);
     }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--brand);
-    }
-
-    input[type="time"], button {
-      font: inherit;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      padding: .55rem .65rem;
-      background: #fff;
-      color: var(--text);
-    }
-
-    input[type="time"] { width: 100%; }
-
-    .toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .8rem;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: .65rem .75rem;
-      margin-top: .35rem;
-    }
-
-    .mini-note {
-      margin-top: .35rem;
-      color: var(--muted);
-      font-size: .82rem;
-    }
-
-    .timeline h2 { margin: .2rem 0 .4rem; font-size: 1.1rem; }
-
-    .timeline-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: .75rem;
-      margin-bottom: .4rem;
-      flex-wrap: wrap;
-    }
-
-    .schedule-list {
-      margin-top: .7rem;
-      display: grid;
-      gap: .5rem;
-    }
-
-    .schedule-line {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: .5rem;
-      padding: .25rem 0;
-      border-bottom: 1px dashed #e2e6f7;
-    }
-
-    .schedule-line:last-child {
-      border-bottom: none;
-    }
-
-    .schedule-text {
-      font-size: 1rem;
-      line-height: 1.3;
-      white-space: nowrap;
-    }
-
-    .schedule-text .time {
-      font-weight: 800;
-    }
-
-    .schedule-text .dash {
-      color: var(--muted);
-      margin: 0 .2rem;
-    }
-
-    .time-inputs {
-      display: flex;
-      gap: .25rem;
-      align-items: center;
-    }
-
-    .schedule-line input[type="time"] {
-      width: auto;
-      min-width: 78px;
-      padding: .24rem .32rem;
-      font-size: .76rem;
-    }
-
+    input[type="time"], input[type="text"], input[type="date"] { width: 100%; }
+    button { cursor: pointer; }
+    .primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .toggle { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 12px; padding: .65rem .75rem; }
+    .list-btn { width: 100%; text-align: left; margin-bottom: .45rem; }
+    .chip { display: inline-block; padding: .15rem .4rem; border-radius: 999px; background: #edf0ff; color: #4551c9; font-size: .78rem; }
+    .schedule-list { margin-top: .7rem; display: grid; gap: .5rem; }
+    .schedule-line { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .45rem; padding: .25rem 0; border-bottom: 1px dashed #e2e6f7; }
+    .schedule-text { font-size: 1rem; line-height: 1.3; white-space: nowrap; }
+    .schedule-text .time { font-weight: 800; }
+    .schedule-text .dash { color: var(--muted); margin: 0 .2rem; }
+    .time-inputs { display: flex; gap: .25rem; align-items: center; }
+    .schedule-line input[type="time"] { width: auto; min-width: 78px; padding: .24rem .32rem; font-size: .76rem; }
     .good { color: var(--ok); }
-
+    .small-log { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
     @media (min-width: 640px) {
-      .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: .8rem;
-      }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <section class="card">
-      <h1>Baby Nap + Wake Window Planner</h1>
-      <p>Prototype for quickly testing nap/feeding schedules on mobile.</p>
-
+    <section id="loginView" class="card">
+      <h1>Baby Nap Planner</h1>
+      <p>Enter your username to access shared schedules.</p>
       <div class="field">
-        <div class="field-header">
-          <label for="napCount">Target naps for the day</label>
-          <span class="value" id="napCountValue">3 naps</span>
-        </div>
-        <input id="napCount" type="range" min="1" max="6" step="1" value="3" />
+        <label for="usernameInput">Enter username</label>
+        <input id="usernameInput" type="text" placeholder="Mom" />
       </div>
+      <button id="loginBtn" class="primary" type="button">Continue</button>
+    </section>
 
-      <div id="napLengthControls"></div>
-
-      <div class="field">
-        <label for="catnap" style="display:block; margin-bottom: .3rem;">Include 30 minute "catnap" before bed</label>
-        <div class="toggle">
-          <span>Catnap enabled (ends 1.5h before bedtime)</span>
-          <input id="catnap" type="checkbox" checked />
-        </div>
+    <section id="childrenView" class="hidden">
+      <div class="card">
+        <h2>Welcome, <span id="currentUserName"></span></h2>
+        <p>Select a child schedule or create one to share with caregivers.</p>
       </div>
-
-      <div class="grid-2">
-        <div class="field">
-          <div class="field-header">
-            <label for="wakeTime">First wake-up time</label>
-            <span class="value" id="wakeTimeValue"></span>
-          </div>
-          <input id="wakeTime" type="range" min="300" max="600" step="15" value="510" />
-        </div>
-
-        <div class="field">
-          <div class="field-header">
-            <label for="firstFeed">First feed time</label>
-            <span class="value" id="firstFeedValue"></span>
-          </div>
-          <input id="firstFeed" type="range" min="300" max="660" step="15" value="525" />
-        </div>
+      <div class="card">
+        <h3>Your children</h3>
+        <div id="childrenList"></div>
       </div>
-
-      <div class="grid-2">
-        <div class="field">
-          <div class="field-header">
-            <label for="wakeWindow">Wake window length</label>
-            <span class="value" id="wakeWindowValue"></span>
-          </div>
-          <input id="wakeWindow" type="range" min="45" max="240" step="15" value="90" />
-        </div>
-
-        <div class="field">
-          <div class="field-header">
-            <label for="feedInterval">Time between feeds</label>
-            <span class="value" id="feedIntervalValue"></span>
-          </div>
-          <input id="feedInterval" type="range" min="120" max="300" step="15" value="180" />
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="bedtime" style="display:block; margin-bottom: .35rem;">Bedtime</label>
-        <input id="bedtime" type="time" value="20:00" />
+      <div class="card">
+        <h3>Add child + share access</h3>
+        <div class="field"><label for="childNameInput">Child name</label><input id="childNameInput" type="text" placeholder="Baby Ava" /></div>
+        <div class="field"><label for="shareUsersInput">Share with usernames (comma separated)</label><input id="shareUsersInput" type="text" placeholder="Dad, G-me, Babysitter1" /></div>
+        <button id="createChildBtn" class="primary" type="button">Create child</button>
       </div>
     </section>
 
-    <section class="card timeline">
-      <div class="timeline-head">
-        <h2>Suggested Daily Timeline</h2>
-        <button id="clearEdits" type="button">Clear manual timeline edits</button>
+    <section id="scheduleView" class="hidden">
+      <div class="card">
+        <div class="row" style="justify-content: space-between;">
+          <button id="backToChildrenBtn" type="button">← Children</button>
+          <span class="chip" id="activeUserChip"></span>
+        </div>
+        <h2 id="activeChildTitle"></h2>
+        <div class="field">
+          <label for="scheduleDate">Schedule date</label>
+          <input id="scheduleDate" type="date" />
+        </div>
       </div>
-      <p class="mini-note">Simple schedule view. Edit any time inline; later events shift from the edit point.</p>
-      <div id="schedule" class="schedule-list"></div>
+
+      <section class="card">
+        <div class="field">
+          <div class="field-header">
+            <label for="napCount">Target naps for the day</label>
+            <span class="value" id="napCountValue">3 naps</span>
+          </div>
+          <input id="napCount" type="range" min="1" max="6" step="1" value="3" />
+        </div>
+
+        <div id="napLengthControls"></div>
+
+        <div class="field">
+          <label for="catnap" style="display:block; margin-bottom: .3rem;">Include 30 minute "catnap" before bed</label>
+          <div class="toggle"><span>Catnap enabled (ends 1.5h before bedtime)</span><input id="catnap" type="checkbox" checked /></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <div class="field-header"><label for="wakeTime">First wake-up time</label><span class="value" id="wakeTimeValue"></span></div>
+            <input id="wakeTime" type="range" min="300" max="600" step="15" value="510" />
+          </div>
+          <div class="field">
+            <div class="field-header"><label for="firstFeed">First feed time</label><span class="value" id="firstFeedValue"></span></div>
+            <input id="firstFeed" type="range" min="300" max="660" step="15" value="525" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <div class="field-header"><label for="wakeWindow">Wake window length</label><span class="value" id="wakeWindowValue"></span></div>
+            <input id="wakeWindow" type="range" min="45" max="240" step="15" value="90" />
+          </div>
+          <div class="field">
+            <div class="field-header"><label for="feedInterval">Time between feeds</label><span class="value" id="feedIntervalValue"></span></div>
+            <input id="feedInterval" type="range" min="120" max="300" step="15" value="180" />
+          </div>
+        </div>
+
+        <div class="field"><label for="bedtime" style="display:block; margin-bottom: .35rem;">Bedtime</label><input id="bedtime" type="time" value="20:00" /></div>
+      </section>
+
+      <section class="card">
+        <div class="row" style="justify-content: space-between;"><h2>Suggested Daily Timeline</h2><button id="clearEdits" type="button">Clear manual timeline edits</button></div>
+        <p>Simple schedule view. Edit any time inline; later events shift from the edit point.</p>
+        <div id="schedule" class="schedule-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>Edit history</h3>
+        <div id="editLog"></div>
+      </section>
     </section>
   </main>
 
   <script>
+    const STORAGE_KEY = 'napPlannerSharedV1';
+
+    const defaults = {
+      napCount: 3,
+      catnap: true,
+      wakeTime: 510,
+      firstFeed: 525,
+      wakeWindow: 90,
+      feedInterval: 180,
+      bedtime: '20:00',
+      napDurations: [90, 90, 60, 60, 60, 60],
+      timelineStartOverrides: {},
+      timelineEndOverrides: {},
+      logs: []
+    };
+
     const el = {
+      loginView: document.getElementById('loginView'),
+      childrenView: document.getElementById('childrenView'),
+      scheduleView: document.getElementById('scheduleView'),
+      usernameInput: document.getElementById('usernameInput'),
+      loginBtn: document.getElementById('loginBtn'),
+      currentUserName: document.getElementById('currentUserName'),
+      childrenList: document.getElementById('childrenList'),
+      childNameInput: document.getElementById('childNameInput'),
+      shareUsersInput: document.getElementById('shareUsersInput'),
+      createChildBtn: document.getElementById('createChildBtn'),
+      backToChildrenBtn: document.getElementById('backToChildrenBtn'),
+      activeUserChip: document.getElementById('activeUserChip'),
+      activeChildTitle: document.getElementById('activeChildTitle'),
+      scheduleDate: document.getElementById('scheduleDate'),
       napCount: document.getElementById('napCount'),
       napCountValue: document.getElementById('napCountValue'),
       napLengthControls: document.getElementById('napLengthControls'),
@@ -259,61 +204,172 @@
       feedInterval: document.getElementById('feedInterval'),
       feedIntervalValue: document.getElementById('feedIntervalValue'),
       bedtime: document.getElementById('bedtime'),
+      clearEdits: document.getElementById('clearEdits'),
       schedule: document.getElementById('schedule'),
-      clearEdits: document.getElementById('clearEdits')
+      editLog: document.getElementById('editLog')
     };
 
-    const napDurations = [90, 90, 60, 60, 60, 60];
-    const timelineStartOverrides = new Map();
-    const timelineEndOverrides = new Map();
+    const state = {
+      db: loadDB(),
+      currentUser: null,
+      activeChildId: null,
+      activeDate: new Date().toISOString().slice(0, 10),
+      timelineStartOverrides: new Map(),
+      timelineEndOverrides: new Map(),
+      napDurations: [...defaults.napDurations],
+      isHydrating: false
+    };
 
-    function formatTime(totalMin) {
-      const mins = ((totalMin % 1440) + 1440) % 1440;
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      const suffix = h >= 12 ? 'PM' : 'AM';
-      const hour12 = h % 12 || 12;
-      return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
+    function loadDB() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+      return { users: {}, children: {}, schedules: {} };
+    }
+    function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.db)); }
+    function fmtDuration(min) { const h = Math.floor(min/60), m = min%60; return h && m ? `${h}h ${m}m` : h ? `${h}h` : `${m}m`; }
+    function parseTimeInput(v) { const [h,m]=v.split(':').map(Number); return h*60+m; }
+    function timeInputValue(totalMin) { const mins=((totalMin%1440)+1440)%1440; const h=Math.floor(mins/60),m=mins%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+    function formatTime(totalMin) { const mins=((totalMin%1440)+1440)%1440; const h=Math.floor(mins/60),m=mins%60,s=h>=12?'PM':'AM',h12=h%12||12; return `${h12}:${String(m).padStart(2,'0')} ${s}`; }
+
+    function show(view) {
+      el.loginView.classList.toggle('hidden', view !== 'login');
+      el.childrenView.classList.toggle('hidden', view !== 'children');
+      el.scheduleView.classList.toggle('hidden', view !== 'schedule');
     }
 
-    function timeInputValue(totalMin) {
-      const mins = ((totalMin % 1440) + 1440) % 1440;
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    function ensureUser(username) {
+      if (!state.db.users[username]) state.db.users[username] = { username, children: [] };
+      saveDB();
     }
 
-    function fmtDuration(min) {
-      const h = Math.floor(min / 60);
-      const m = min % 60;
-      if (h && m) return `${h}h ${m}m`;
-      if (h) return `${h}h`;
-      return `${m}m`;
+    function login() {
+      const username = el.usernameInput.value.trim();
+      if (!username) return;
+      state.currentUser = username;
+      ensureUser(username);
+      renderChildren();
+      show('children');
     }
 
-    function parseTimeInput(value) {
-      const [h, m] = value.split(':').map(Number);
-      return h * 60 + m;
+    function renderChildren() {
+      el.currentUserName.textContent = state.currentUser;
+      const childIds = Object.values(state.db.children)
+        .filter(c => c.sharedWith.includes(state.currentUser))
+        .map(c => c.id);
+
+      if (!childIds.length) {
+        el.childrenList.innerHTML = '<p>No shared children yet. Create one below.</p>';
+        return;
+      }
+
+      el.childrenList.innerHTML = childIds.map(id => {
+        const child = state.db.children[id];
+        return `<button class="list-btn" type="button" data-child-id="${id}">${child.name} <span class="chip">shared with ${child.sharedWith.join(', ')}</span></button>`;
+      }).join('');
+
+      el.childrenList.querySelectorAll('button[data-child-id]').forEach(btn => {
+        btn.addEventListener('click', () => openChild(btn.dataset.childId));
+      });
     }
+
+    function createChild() {
+      const name = el.childNameInput.value.trim();
+      if (!name) return;
+      const id = `child-${Date.now()}`;
+      const shared = new Set([state.currentUser]);
+      el.shareUsersInput.value.split(',').map(s => s.trim()).filter(Boolean).forEach(u => shared.add(u));
+
+      state.db.children[id] = { id, name, createdBy: state.currentUser, sharedWith: Array.from(shared) };
+      Array.from(shared).forEach(u => ensureUser(u));
+      saveDB();
+
+      el.childNameInput.value = '';
+      el.shareUsersInput.value = '';
+      renderChildren();
+    }
+
+    function getScheduleRecord() {
+      if (!state.db.schedules[state.activeChildId]) state.db.schedules[state.activeChildId] = {};
+      if (!state.db.schedules[state.activeChildId][state.activeDate]) {
+        state.db.schedules[state.activeChildId][state.activeDate] = JSON.parse(JSON.stringify(defaults));
+      }
+      return state.db.schedules[state.activeChildId][state.activeDate];
+    }
+
+    function hydrateScheduleToUI() {
+      state.isHydrating = true;
+      const r = getScheduleRecord();
+      el.napCount.value = r.napCount;
+      el.catnap.checked = r.catnap;
+      el.wakeTime.value = r.wakeTime;
+      el.firstFeed.value = r.firstFeed;
+      el.wakeWindow.value = r.wakeWindow;
+      el.feedInterval.value = r.feedInterval;
+      el.bedtime.value = r.bedtime;
+      state.napDurations = [...(r.napDurations || defaults.napDurations)];
+      state.timelineStartOverrides = new Map(Object.entries(r.timelineStartOverrides || {}));
+      state.timelineEndOverrides = new Map(Object.entries(r.timelineEndOverrides || {}));
+      renderNapLengthControls();
+      renderSchedule();
+      renderLog();
+      state.isHydrating = false;
+    }
+
+    function persistSchedule() {
+      if (state.isHydrating) return;
+      const r = getScheduleRecord();
+      r.napCount = Number(el.napCount.value);
+      r.catnap = el.catnap.checked;
+      r.wakeTime = Number(el.wakeTime.value);
+      r.firstFeed = Number(el.firstFeed.value);
+      r.wakeWindow = Number(el.wakeWindow.value);
+      r.feedInterval = Number(el.feedInterval.value);
+      r.bedtime = el.bedtime.value;
+      r.napDurations = [...state.napDurations];
+      r.timelineStartOverrides = Object.fromEntries(state.timelineStartOverrides.entries());
+      r.timelineEndOverrides = Object.fromEntries(state.timelineEndOverrides.entries());
+      saveDB();
+    }
+
+    function addLog(message) {
+      const r = getScheduleRecord();
+      r.logs.push({ at: new Date().toISOString(), user: state.currentUser, message });
+      r.logs = r.logs.slice(-60);
+      saveDB();
+      renderLog();
+    }
+
+    function renderLog() {
+      const r = getScheduleRecord();
+      if (!r.logs?.length) {
+        el.editLog.innerHTML = '<p class="small-log">No edits yet for this day.</p>';
+        return;
+      }
+      el.editLog.innerHTML = r.logs.slice().reverse().map(log => `<div class="small-log">${new Date(log.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} — ${log.user} ${log.message}</div>`).join('');
+    }
+
+    function openChild(childId) {
+      state.activeChildId = childId;
+      state.activeDate = new Date().toISOString().slice(0, 10);
+      el.scheduleDate.value = state.activeDate;
+      el.activeChildTitle.textContent = `${state.db.children[childId].name}'s schedule`;
+      el.activeUserChip.textContent = `Signed in: ${state.currentUser}`;
+      hydrateScheduleToUI();
+      show('schedule');
+    }
+
     function renderNapLengthControls() {
       const napCount = Number(el.napCount.value);
-      const blocks = [];
+      const html = [];
       for (let i = 0; i < napCount; i++) {
-        blocks.push(`
-          <div class="field">
-            <div class="field-header">
-              <label for="napDuration${i}">Nap ${i + 1} length</label>
-              <span class="value" id="napDuration${i}Value">${fmtDuration(napDurations[i])}</span>
-            </div>
-            <input id="napDuration${i}" data-nap-index="${i}" type="range" min="30" max="150" step="15" value="${napDurations[i]}" />
-          </div>
-        `);
+        html.push(`<div class="field"><div class="field-header"><label for="napDuration${i}">Nap ${i+1} length</label><span class="value" id="napDuration${i}Value">${fmtDuration(state.napDurations[i])}</span></div><input id="napDuration${i}" data-nap-index="${i}" type="range" min="30" max="150" step="15" value="${state.napDurations[i]}" /></div>`);
       }
-      el.napLengthControls.innerHTML = blocks.join('');
+      el.napLengthControls.innerHTML = html.join('');
       el.napLengthControls.querySelectorAll('input[type="range"]').forEach(input => {
         input.addEventListener('input', event => {
-          const napIndex = Number(event.target.dataset.napIndex);
-          napDurations[napIndex] = Number(event.target.value);
+          const idx = Number(event.target.dataset.napIndex);
+          state.napDurations[idx] = Number(event.target.value);
+          persistSchedule();
           renderSchedule();
         });
       });
@@ -323,56 +379,34 @@
       let shift = 0;
       return events.map(item => {
         const next = { ...item, at: item.at + shift };
-
-        if (timelineStartOverrides.has(item.key)) {
-          const manualAt = Math.min(timelineStartOverrides.get(item.key), bedtime);
+        if (state.timelineStartOverrides.has(item.key)) {
+          const manualAt = Math.min(Number(state.timelineStartOverrides.get(item.key)), bedtime);
           const delta = manualAt - next.at;
           next.at = manualAt;
-          if (next.type !== 'feed') {
-            shift += delta;
-          }
+          if (next.type !== 'feed') shift += delta;
         }
-
         if ((next.type === 'nap' || next.type === 'catnap') && typeof next.duration === 'number') {
           const originalDuration = next.duration;
-
-          if (timelineEndOverrides.has(item.key)) {
-            const manualEnd = Math.min(timelineEndOverrides.get(item.key), bedtime);
-            const minEnd = next.at + 15;
-            const adjustedEnd = Math.max(minEnd, manualEnd);
+          if (state.timelineEndOverrides.has(item.key)) {
+            const manualEnd = Math.min(Number(state.timelineEndOverrides.get(item.key)), bedtime);
+            const adjustedEnd = Math.max(next.at + 15, manualEnd);
             next.duration = adjustedEnd - next.at;
             shift += next.duration - originalDuration;
           }
-
           const maxDuration = Math.max(0, bedtime - next.at);
           if (next.duration > maxDuration) {
             shift += maxDuration - next.duration;
             next.duration = maxDuration;
           }
         }
-
-        if (next.at > bedtime) {
-          next.at = bedtime;
-        }
+        if (next.at > bedtime) next.at = bedtime;
         return next;
       });
     }
 
-    function alignFeedToNapEnd(feedTime, napBlocks) {
-      let adjusted = feedTime;
-      napBlocks.forEach(nap => {
-        if (adjusted >= nap.start && adjusted < nap.end) {
-          adjusted = nap.end;
-        }
-      });
-      return adjusted;
-    }
-
-
     function adjustFeedForNaps(feedTime, naps, bedtime) {
       let adjusted = Math.min(feedTime, bedtime);
       let changed = true;
-
       while (changed) {
         changed = false;
         for (const nap of naps) {
@@ -382,39 +416,20 @@
           }
         }
       }
-
       return adjusted;
     }
 
     function applyFeedCadence(events, bedtime, feedInterval) {
-      const naps = events
-        .filter(item => (item.type === 'nap' || item.type === 'catnap') && typeof item.duration === 'number')
-        .map(item => ({ start: item.at, end: item.at + item.duration }))
-        .sort((a, b) => a.start - b.start);
-
+      const naps = events.filter(i => (i.type === 'nap' || i.type === 'catnap') && typeof i.duration === 'number').map(i => ({start:i.at,end:i.at+i.duration})).sort((a,b)=>a.start-b.start);
       let lastFeedTime = null;
       return events.map(item => {
-        if (item.type !== 'feed') {
-          return item;
-        }
-
-        let nextFeedTime = item.at;
-        const manualFeedEdit = timelineStartOverrides.has(item.key);
-
-        if (manualFeedEdit) {
-          nextFeedTime = Math.min(timelineStartOverrides.get(item.key), bedtime);
-        } else if (lastFeedTime !== null) {
-          nextFeedTime = lastFeedTime + feedInterval;
-        }
-
-        nextFeedTime = adjustFeedForNaps(nextFeedTime, naps, bedtime);
-        lastFeedTime = nextFeedTime;
-
-        return {
-          ...item,
-          at: nextFeedTime,
-          details: `Target feed around ${formatTime(nextFeedTime)}.`
-        };
+        if (item.type !== 'feed') return item;
+        let t = item.at;
+        if (state.timelineStartOverrides.has(item.key)) t = Math.min(Number(state.timelineStartOverrides.get(item.key)), bedtime);
+        else if (lastFeedTime !== null) t = lastFeedTime + feedInterval;
+        t = adjustFeedForNaps(t, naps, bedtime);
+        lastFeedTime = t;
+        return { ...item, at: t, details: `Target feed around ${formatTime(t)}.` };
       });
     }
 
@@ -434,98 +449,50 @@
       el.feedIntervalValue.textContent = fmtDuration(feedInterval);
 
       for (let i = 0; i < napCount; i++) {
-        const durationLabel = document.getElementById(`napDuration${i}Value`);
-        if (durationLabel) {
-          durationLabel.textContent = fmtDuration(napDurations[i]);
-        }
+        const lbl = document.getElementById(`napDuration${i}Value`); if (lbl) lbl.textContent = fmtDuration(state.napDurations[i]);
       }
 
-      const events = [{
-        key: 'start-day',
-        type: 'start',
-        at: wakeTime,
-        title: 'Start day',
-        details: 'Wake up and begin first wake window.'
-      }];
-
+      const events = [{ key:'start-day', type:'start', at:wakeTime, title:'Start day', details:'Wake up and begin first wake window.' }];
       const napBlocks = [];
       let currentWakeStart = wakeTime;
-      for (let i = 1; i <= napCount; i++) {
-        const napDuration = napDurations[i - 1] || 60;
-        let napStart = currentWakeStart + wakeWindow;
-        let napEnd = napStart + napDuration;
-
-        if (napStart >= bedtime - 30) break;
-        if (napEnd > bedtime - 15) napEnd = bedtime - 15;
-        if (napEnd <= napStart) break;
-
-        napBlocks.push({ start: napStart, end: napEnd });
-        events.push({
-          key: `nap-${i}`,
-          type: 'nap',
-          duration: napEnd - napStart,
-          at: napStart,
-          title: `Nap ${i}`,
-          details: `${formatTime(napStart)} → ${formatTime(napEnd)} (${fmtDuration(napEnd - napStart)})`
-        });
-
-        currentWakeStart = napEnd;
+      for (let i=1;i<=napCount;i++) {
+        const dur = state.napDurations[i-1] || 60;
+        let start = currentWakeStart + wakeWindow;
+        let end = start + dur;
+        if (start >= bedtime - 30) break;
+        if (end > bedtime - 15) end = bedtime - 15;
+        if (end <= start) break;
+        napBlocks.push({start,end});
+        events.push({ key:`nap-${i}`, type:'nap', duration:end-start, at:start, title:`Nap ${i}`, details:'' });
+        currentWakeStart = end;
       }
 
       if (includeCatnap) {
         const catnapEnd = bedtime - 90;
         const catnapStart = catnapEnd - 30;
         if (catnapStart > wakeTime && catnapEnd > catnapStart) {
-          napBlocks.push({ start: catnapStart, end: catnapEnd });
-          events.push({
-            key: 'catnap',
-            type: 'catnap',
-            duration: 30,
-            at: catnapStart,
-            title: 'Catnap',
-            details: `${formatTime(catnapStart)} → ${formatTime(catnapEnd)} (30m, ends 1.5h before bedtime)`
-          });
+          napBlocks.push({start:catnapStart,end:catnapEnd});
+          events.push({ key:'catnap', type:'catnap', duration:30, at:catnapStart, title:'Catnap', details:'' });
         }
       }
 
-      let feedIndex = 1;
+      let idx = 1;
       for (let t = firstFeed; t <= bedtime; t += feedInterval) {
-        const safeFeedTime = alignFeedToNapEnd(t, napBlocks);
-        if (safeFeedTime > bedtime) {
-          continue;
-        }
-        events.push({
-          key: `feed-${feedIndex}`,
-          type: 'feed',
-          at: safeFeedTime,
-          title: 'Feed',
-          details: `Target feed around ${formatTime(safeFeedTime)}.`
-        });
-        feedIndex++;
+        const safe = napBlocks.reduce((acc, n) => acc >= n.start && acc < n.end ? n.end : acc, t);
+        if (safe > bedtime) continue;
+        events.push({ key:`feed-${idx++}`, type:'feed', at:safe, title:'Feed', details:'' });
       }
 
-      events.push({
-        key: 'bedtime',
-        type: 'bedtime',
-        at: bedtime,
-        title: 'Bedtime',
-        details: 'Night sleep target.',
-        good: true
-      });
-
-      return events.sort((a, b) => a.at - b.at);
+      events.push({ key:'bedtime', type:'bedtime', at:bedtime, title:'Bedtime', details:'Night sleep target.', good:true });
+      return events.sort((a,b)=>a.at-b.at);
     }
-
 
     function getEventDetails(item) {
       if ((item.type === 'nap' || item.type === 'catnap') && item.duration) {
         const end = item.at + item.duration;
-        const suffix = item.type === 'catnap' ? ', ends 1.5h before bedtime' : '';
-        return `${formatTime(item.at)} → ${formatTime(end)} (${fmtDuration(item.duration)}${suffix})`;
+        return `${formatTime(item.at)} → ${formatTime(end)} (${fmtDuration(item.duration)})`;
       }
-      if (item.type === 'feed') {
-        return `Target feed around ${formatTime(item.at)}.`;
-      }
+      if (item.type === 'feed') return `Target feed around ${formatTime(item.at)}.`;
       return item.details;
     }
 
@@ -540,22 +507,16 @@
     function renderSchedule() {
       const bedtime = parseTimeInput(el.bedtime.value || '20:00');
       const feedInterval = Number(el.feedInterval.value);
-      const baseEvents = buildEvents();
-      const shiftedEvents = shiftEventsFromManualEdits(baseEvents, bedtime)
-        .filter(item => item.at <= bedtime)
-        .sort((a, b) => a.at - b.at);
-      const events = applyFeedCadence(shiftedEvents, bedtime, feedInterval)
-        .filter(item => item.at <= bedtime)
-        .sort((a, b) => a.at - b.at);
+      const base = buildEvents();
+      const shifted = shiftEventsFromManualEdits(base, bedtime).filter(i => i.at <= bedtime).sort((a,b)=>a.at-b.at);
+      const events = applyFeedCadence(shifted, bedtime, feedInterval).filter(i => i.at <= bedtime).sort((a,b)=>a.at-b.at);
 
       el.schedule.innerHTML = events.map(item => `
         <div class="schedule-line ${item.good ? 'good' : ''}">
           <div class="schedule-text" title="${getEventDetails(item)}">${getEventLine(item)}</div>
           <div class="time-inputs">
-            <input type="time" data-key="${item.key}" data-kind="start" value="${timeInputValue(item.at)}" />
-            ${(item.type === 'nap' || item.type === 'catnap')
-              ? `<input type="time" data-key="${item.key}" data-kind="end" value="${timeInputValue(item.at + item.duration)}" />`
-              : ''}
+            <input type="time" data-key="${item.key}" data-kind="start" data-title="${item.title}" value="${timeInputValue(item.at)}" />
+            ${(item.type === 'nap' || item.type === 'catnap') ? `<input type="time" data-key="${item.key}" data-kind="end" data-title="${item.title}" value="${timeInputValue(item.at + item.duration)}" />` : ''}
           </div>
         </div>
       `).join('');
@@ -564,39 +525,48 @@
         input.addEventListener('change', event => {
           const key = event.target.dataset.key;
           const kind = event.target.dataset.kind;
-          const changedTime = parseTimeInput(event.target.value);
+          const title = event.target.dataset.title;
+          const changed = parseTimeInput(event.target.value);
           if (kind === 'end') {
-            timelineEndOverrides.set(key, changedTime);
+            state.timelineEndOverrides.set(key, changed);
+            addLog(`edited ${title} end time to ${formatTime(changed)}`);
           } else {
-            timelineStartOverrides.set(key, changedTime);
+            state.timelineStartOverrides.set(key, changed);
+            addLog(`edited ${title} time to ${formatTime(changed)}`);
           }
+          persistSchedule();
           renderSchedule();
         });
       });
     }
 
-    el.napCount.addEventListener('input', () => {
-      renderNapLengthControls();
+    function onControlChange() {
+      persistSchedule();
       renderSchedule();
-    });
+    }
 
-    [
-      el.catnap,
-      el.wakeTime,
-      el.firstFeed,
-      el.wakeWindow,
-      el.feedInterval,
-      el.bedtime
-    ].forEach(input => input.addEventListener('input', renderSchedule));
+    el.loginBtn.addEventListener('click', login);
+    el.usernameInput.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+    el.createChildBtn.addEventListener('click', createChild);
+    el.backToChildrenBtn.addEventListener('click', () => { show('children'); renderChildren(); });
+
+    el.napCount.addEventListener('input', () => { renderNapLengthControls(); onControlChange(); });
+    [el.catnap, el.wakeTime, el.firstFeed, el.wakeWindow, el.feedInterval, el.bedtime].forEach(input => input.addEventListener('input', onControlChange));
+
+    el.scheduleDate.addEventListener('change', () => {
+      state.activeDate = el.scheduleDate.value;
+      hydrateScheduleToUI();
+    });
 
     el.clearEdits.addEventListener('click', () => {
-      timelineStartOverrides.clear();
-      timelineEndOverrides.clear();
+      state.timelineStartOverrides.clear();
+      state.timelineEndOverrides.clear();
+      addLog('cleared manual timeline edits');
+      persistSchedule();
       renderSchedule();
     });
 
-    renderNapLengthControls();
-    renderSchedule();
+    show('login');
   </script>
 </body>
 </html>
