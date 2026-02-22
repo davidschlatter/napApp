@@ -1,0 +1,14 @@
+{
+  "name": "nap-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
