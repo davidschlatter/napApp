@@ -24,6 +24,33 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.static(__dirname));
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(value => value.trim())
+  .filter(Boolean);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin) {
+    next();
+    return;
+  }
+
+  if (!allowedOrigins.length || allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+
+  next();
+});
+
 function sanitizeUsername(value) {
   return String(value || '').trim().slice(0, 50);
 }

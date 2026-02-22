@@ -86,8 +86,12 @@
 
     const state = { currentUser:null, activeChild:null, activeDate:new Date().toISOString().slice(0,10), napDurations:[...defaults.napDurations], timelineStartOverrides:new Map(), timelineEndOverrides:new Map(), isHydrating:false };
 
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? ''
+      : 'https://napapp.onrender.com';
+
     async function api(path, opts={}) {
-      const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+      const res = await fetch(`${API_BASE}${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Request failed');
       return data;

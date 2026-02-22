@@ -33,6 +33,7 @@ Create a `.env` file in project root:
 SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
 PORT=8123
+ALLOWED_ORIGINS=https://YOUR_GITHUB_USERNAME.github.io
 ```
 
 > Never expose `SUPABASE_SERVICE_ROLE_KEY` in frontend code.
@@ -67,3 +68,11 @@ Open `http://localhost:8123`.
 - **Users can login but see no children**: verify `child_access` rows include that username.
 - **Edits not showing up**: check `schedules` and `edit_logs` tables for inserts.
 - **Cross-device not syncing**: verify both devices hit same deployed backend URL.
+
+
+## 8) GitHub Pages frontend + Render backend
+1. Keep frontend hosted on GitHub Pages.
+2. Deploy backend to Render (your API base URL).
+3. Set `ALLOWED_ORIGINS` in Render environment variables to your GitHub Pages origin (no trailing slash).
+   - Example: `https://yourname.github.io`
+4. Redeploy backend after env var changes.
