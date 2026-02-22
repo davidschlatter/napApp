@@ -115,8 +115,18 @@
       el.currentUserName.textContent = state.currentUser;
       const { children } = await api(`/api/children?username=${encodeURIComponent(state.currentUser)}`);
       if (!children.length) { el.childrenList.innerHTML = '<p>No shared children yet. Create one below.</p>'; return; }
-      el.childrenList.innerHTML = children.map(child => `<button class='list-btn' type='button' data-child-id='${child.id}'>${child.name} <span class='chip'>shared</span></button>`).join('');
+
+      el.childrenList.innerHTML = children.map(child => `
+        <div class='row' style='justify-content:space-between; margin-bottom:.45rem;'>
+          <button class='list-btn' type='button' data-child-id='${child.id}' style='margin:0; flex:1;'>${child.name} <span class='chip'>shared</span></button>
+          <button type='button' data-share-child-id='${child.id}' data-share-child-name='${child.name}'>Share</button>
+        </div>
+      `).join('');
+
       el.childrenList.querySelectorAll('button[data-child-id]').forEach(btn => btn.addEventListener('click', () => openChild(btn.dataset.childId)));
+      el.childrenList.querySelectorAll('button[data-share-child-id]').forEach(btn => {
+        btn.addEventListener('click', () => shareExistingChild(btn.dataset.shareChildId, btn.dataset.shareChildName));
+      });
     }
 
     async function createChild(){
@@ -125,6 +135,18 @@
       await api('/api/children', { method:'POST', body: JSON.stringify({ creator: state.currentUser, name, sharedWith }) });
       el.childNameInput.value = ''; el.shareUsersInput.value = '';
       await renderChildren();
+    }
+
+    async function shareExistingChild(childId, childName){
+      const response = prompt(`Add caregivers for ${childName} (comma separated usernames):`);
+      if (response === null) return;
+      const sharedWith = response.split(',').map(s => s.trim()).filter(Boolean);
+      if (!sharedWith.length) return;
+      await api('/api/children/share', {
+        method:'POST',
+        body: JSON.stringify({ requester: state.currentUser, childId, sharedWith })
+      });
+      alert(`Shared ${childName} with: ${sharedWith.join(', ')}`);
     }
 
     async function getScheduleRecord(){

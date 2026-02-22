@@ -111,6 +111,38 @@ app.post('/api/children', async (req, res) => {
   res.json({ child });
 });
 
+app.post('/api/children/share', async (req, res) => {
+  const requester = sanitizeUsername(req.body.requester);
+  const childId = String(req.body.childId || '');
+  const sharedWith = Array.isArray(req.body.sharedWith)
+    ? req.body.sharedWith.map(sanitizeUsername).filter(Boolean)
+    : [];
+
+  if (!requester || !childId || !sharedWith.length) {
+    return res.status(400).json({ error: 'requester, childId, and sharedWith are required.' });
+  }
+
+  const { data: requesterAccess, error: requesterErr } = await supabase
+    .from('child_access')
+    .select('child_id')
+    .eq('child_id', childId)
+    .eq('username', requester)
+    .maybeSingle();
+
+  if (requesterErr) return res.status(500).json({ error: requesterErr.message });
+  if (!requesterAccess) return res.status(403).json({ error: 'Requester does not have access to this child.' });
+
+  const uniqueUsers = Array.from(new Set(sharedWith));
+  const usersErr = await supabase.from('caregiver_users').upsert(uniqueUsers.map(username => ({ username })), { onConflict: 'username' });
+  if (usersErr.error) return res.status(500).json({ error: usersErr.error.message });
+
+  const accessRows = uniqueUsers.map(username => ({ child_id: childId, username }));
+  const { error: shareErr } = await supabase.from('child_access').upsert(accessRows, { onConflict: 'child_id,username' });
+  if (shareErr) return res.status(500).json({ error: shareErr.message });
+
+  res.json({ ok: true, sharedWith: uniqueUsers });
+});
+
 app.get('/api/schedule', async (req, res) => {
   const childId = String(req.query.childId || '');
   const scheduleDate = String(req.query.date || '');
